@@ -21,11 +21,34 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+    - name: "Use Node.js 16"
+      uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e #v1: v2.x available
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+        node-version: 16
+    - name: "Install CLI tools"
+      run: npm install -g @angular/cli@13
+    - name: "Install application minimalistically"
+      run: |
+        npm install --ignore-scripts
+        cd frontend
+        npm install --ignore-scripts --legacy-peer-deps
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: |
+          5.0.x
+          6.0.x
+    - name: Run Microsoft Security DevOps
+      uses: microsoft/security-devops-action@preview
+      id: msdo
+
+    - name: Upload alerts file as a workflow artifact
+      uses: actions/upload-artifact@v3
+      with:  
+        name: alerts
+        path: ${{ steps.msdo.outputs.sarifFile }}
+        
+      # Upload alerts to the Security tab
+    - name: Upload alerts to Security tab
+      uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: ${{ steps.msdo.outputs.sarifFile }}
