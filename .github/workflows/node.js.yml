@@ -35,9 +35,11 @@ jobs:
           5.0.x
           6.0.x
     - name: Run Microsoft Security DevOps
-      continue-on-error: true
       uses: microsoft/security-devops-action@preview
       id: msdo
+      with:
+        tools: 'eslint'
+
 
     - name: Upload alerts file as a workflow artifact
       uses: actions/upload-artifact@v3
